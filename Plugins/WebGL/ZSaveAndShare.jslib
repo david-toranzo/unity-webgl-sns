@@ -80,4 +80,51 @@ mergeInto(LibraryManager.library, {
         },
        });
    },
+
+   upload_external_screenshot: function(imgPtr, size) {
+       if(typeof window.snsInitialized === 'undefined') {
+           window.snsInitialized = true; // Forzamos inicialización si no se hizo
+       }
+       
+       var binary = '';
+       for (var i = 0; i < size; i++) {
+           binary += String.fromCharCode(HEAPU8[imgPtr + i]);
+       }
+       
+       window.snapUrl = 'data:image/png;base64,' + btoa(binary);
+       
+       console.log("Imagen externa cargada exitosamente en window.snapUrl");
+   },
+
+    zappar_sns_share_native: function(text) {
+       if (typeof window.snapUrl === 'undefined' || window.snapUrl === null) {
+           console.log("There is a problem with the screeshot");
+           return;
+       }
+
+       var shareText = UTF8ToString(text);
+
+       fetch(window.snapUrl)
+           .then(res => res.blob())
+           .then(blob => {
+               const file = new File([blob], 'captura.jpg', { type: 'image/jpeg' });
+
+               if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                   navigator.share({
+                       files: [file],
+                       title: 'Mi Partida',
+                       text: shareText
+                   })
+                   .then(() => {
+                       window.uarGameInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
+                   })
+                   .catch((error) => console.log('Error al compartir:', error));
+               } else {
+                   // Abrimos Twitter en una pestaña nueva como fallback
+                   var twitterUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
+                   window.open(twitterUrl, '_blank');
+               }
+           });
+   },
+
 });

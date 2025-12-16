@@ -52,6 +52,12 @@ namespace Zappar.Additional.SNS
         private static extern void zappar_sns_open_snap_prompt();
         [DllImport(PluginName)]
         private static extern void zappar_sns_open_video_prompt();
+
+        //Added
+        [DllImport(PluginName)] 
+        private static extern void zappar_sns_share_native(string text);
+        [DllImport(PluginName)]
+        public static extern void upload_external_screenshot(byte[] img, int size);
 #else
         private static bool zappar_sns_initialize(string canvas, string unityObjectName, string onSavedFunc, string onSharedFunc, string onClosedFunc) { return false; }
         private static bool zappar_sns_is_initialized() { return false; }
@@ -120,6 +126,15 @@ namespace Zappar.Additional.SNS
         public static void OpenSNSVideoRecordingPrompt()
         {
             zappar_sns_open_video_prompt();
+        }
+
+        public static void ShareNative(string text)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        zappar_sns_share_native(text);
+#else
+            Debug.Log("Sharing: " + text);
+#endif
         }
 
         public static void RegisterSNSCallbacks(ZSNSListener.PromptAction onSaved = null, ZSNSListener.PromptAction onShared = null, ZSNSListener.PromptAction onClosed = null)
