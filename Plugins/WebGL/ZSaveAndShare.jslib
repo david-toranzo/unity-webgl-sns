@@ -96,35 +96,37 @@ mergeInto(LibraryManager.library, {
        console.log("Imagen externa cargada exitosamente en window.snapUrl");
    },
 
-    zappar_sns_share_native: function(text) {
-       if (typeof window.snapUrl === 'undefined' || window.snapUrl === null) {
-           console.log("There is a problem with the screeshot");
-           return;
-       }
+zappar_sns_share_native: function(text) {
+        if (typeof window.snapUrl === 'undefined' || window.snapUrl === null) {
+            console.log("There is a problem with the screenshot");
+            return;
+        }
 
-       var shareText = UTF8ToString(text);
+        var shareText = UTF8ToString(text);
 
-       fetch(window.snapUrl)
-           .then(res => res.blob())
-           .then(blob => {
-               const file = new File([blob], 'captura.jpg', { type: 'image/jpeg' });
+        fetch(window.snapUrl)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], 'captura.png', { type: 'image/png' });
 
-               if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                   navigator.share({
-                       files: [file],
-                       title: 'Mi Partida',
-                       text: shareText
-                   })
-                   .then(() => {
-                       window.uarGameInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
-                   })
-                   .catch((error) => console.log('Error al compartir:', error));
-               } else {
-                   // Abrimos Twitter en una pestaña nueva como fallback
-                   var twitterUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
-                   window.open(twitterUrl, '_blank');
-               }
-           });
-   },
-
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Mi Partida',
+                        text: shareText
+                    })
+                    .then(() => {
+                        window.uarGameInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
+                    })
+                    .catch((error) => console.log('Error al compartir:', error));
+                } else {
+                    // Fallback: Twitter (X) Intent
+                    // Nota: Twitter no permite subir archivos via URL de intent, 
+                    // solo texto y links. El usuario tendrá que subir la imagen manualmente 
+                    // si el navegador no soporta el share nativo.
+                    var twitterUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
+                    window.open(twitterUrl, '_blank');
+                }
+            });
+    },
 });

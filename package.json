@@ -1,6 +1,6 @@
 {
     "name": "com.zappar.sns",
-  "version": "1.0.2",
+  "version": "1.0.3",
     "displayName": "WebGL Save And Share",
     "description": "Implementation of save/share functionality into your WebGL applications.",
     "documentationUrl" : "https://docs.zap.works/universal-ar/useful-packages/webgl-sharing/",
