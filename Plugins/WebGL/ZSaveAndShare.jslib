@@ -116,7 +116,13 @@ zappar_sns_share_native: function(text) {
                         text: shareText
                     })
                     .then(() => {
-                        window.uarGameInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
+                        var unityInstance = window.uarGameInstance || window.unityInstance || (window.gameInstance);
+
+                        if (unityInstance) {
+                            unityInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
+                        } else {
+                            console.warn("No se encontró la instancia de Unity para enviar el mensaje de éxito.");
+                        }
                     })
                     .catch((error) => console.log('Error al compartir:', error));
                 } else {
