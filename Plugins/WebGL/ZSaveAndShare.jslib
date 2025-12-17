@@ -97,42 +97,57 @@ mergeInto(LibraryManager.library, {
    },
 
 zappar_sns_share_native: function(text) {
-        if (typeof window.snapUrl === 'undefined' || window.snapUrl === null) {
-            console.log("There is a problem with the screenshot");
+        if (!window.snapUrl) {
+            console.error("No hay captura de pantalla");
             return;
         }
 
         var shareText = UTF8ToString(text);
 
-        fetch(window.snapUrl)
-            .then(res => res.blob())
-            .then(blob => {
-                const file = new File([blob], 'captura.png', { type: 'image/png' });
+        // Convertir Base64 a Blob de forma manual para asegurar compatibilidad
+        var parts = window.snapUrl.split(';base64,');
+        var contentType = parts[0].split(':')[1];
+        var raw = window.atob(parts[1]);
+        var rawLength = raw.length;
+        var uInt8Array = new Uint8Array(rawLength);
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({
-                        files: [file],
-                        title: 'Mi Partida',
-                        text: shareText
-                    })
-                    .then(() => {
-                        var unityInstance = window.uarGameInstance || window.unityInstance || (window.gameInstance);
+        for (var i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+        }
 
-                        if (unityInstance) {
-                            unityInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
-                        } else {
-                            console.warn("No se encontró la instancia de Unity para enviar el mensaje de éxito.");
-                        }
-                    })
-                    .catch((error) => console.log('Error al compartir:', error));
-                } else {
-                    // Fallback: Twitter (X) Intent
-                    // Nota: Twitter no permite subir archivos via URL de intent, 
-                    // solo texto y links. El usuario tendrá que subir la imagen manualmente 
-                    // si el navegador no soporta el share nativo.
-                    var twitterUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
-                    window.open(twitterUrl, '_blank');
-                }
+        var blob = new Blob([uInt8Array], { type: contentType });
+        // USAR UN NOMBRE DINÁMICO Y CLARO
+        var file = new File([blob], "Screenshot_Game.png", { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: 'Check my score!',
+                text: shareText
+            })
+            .then(function() {
+                var unityInstance = window.uarGameInstance || window.unityInstance || window.gameInstance;
+                if (unityInstance) unityInstance.SendMessage(window.unitySNSObjectListener, window.unitySNSOnSharedFunc);
+            })
+            .catch(function(error) { 
+                console.log('Share failed:', error);
+                // Si falla el menú, descargamos como plan B
+                var a = document.createElement('a');
+                a.href = window.snapUrl;
+                a.download = "Screenshot_Game.png";
+                a.click();
             });
+        } else {
+            // FALLBACK PARA DESKTOP / TWITTER
+            var twitterUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
+            window.open(twitterUrl, '_blank');
+            
+            // Descargar la imagen automáticamente ya que no se puede "adjuntar" a Twitter vía URL
+            var a = document.createElement('a');
+            a.href = window.snapUrl;
+            a.download = "Screenshot_Game.png";
+            a.click();
+            alert("Twitter no permite adjuntar imágenes automáticamente. Se ha descargado tu captura para que la subas.");
+        }
     },
 });
