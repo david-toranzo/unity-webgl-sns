@@ -55,7 +55,7 @@ namespace Zappar.Additional.SNS
 
         //Added
         [DllImport(PluginName)] 
-        private static extern void zappar_sns_share_native(string text);
+        private static extern void zappar_sns_share_last_screenshot(string text);
         [DllImport(PluginName)]
         public static extern void upload_external_screenshot(byte[] img, int size);
 #else
@@ -118,6 +118,13 @@ namespace Zappar.Additional.SNS
             onCapturedCallback?.Invoke();
         }
 
+        public static void UploadScreenshot(byte[] image, int size)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            upload_external_screenshot(image, size);
+#endif
+        }
+
         public static void OpenSNSSnapPrompt()
         {
             zappar_sns_open_snap_prompt();
@@ -128,10 +135,10 @@ namespace Zappar.Additional.SNS
             zappar_sns_open_video_prompt();
         }
 
-        public static void ShareNative(string text)
+        public static void ShareLastScreenshotWithSocialMedia(string text)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        zappar_sns_share_native(text);
+            zappar_sns_share_last_screenshot(text);
 #else
             Debug.Log("Sharing: " + text);
 #endif

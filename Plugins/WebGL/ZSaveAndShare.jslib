@@ -83,7 +83,7 @@ mergeInto(LibraryManager.library, {
 
    upload_external_screenshot: function(imgPtr, size) {
        if(typeof window.snsInitialized === 'undefined') {
-           window.snsInitialized = true; // Forzamos inicialización si no se hizo
+           window.snsInitialized = true; 
        }
        
        var binary = '';
@@ -92,19 +92,16 @@ mergeInto(LibraryManager.library, {
        }
        
        window.snapUrl = 'data:image/png;base64,' + btoa(binary);
-       
-       console.log("Imagen externa cargada exitosamente en window.snapUrl");
-   },
+    },
 
-zappar_sns_share_native: function(text) {
+    zappar_sns_share_last_screenshot: function(text) {
         if (!window.snapUrl) {
-            console.error("No hay captura de pantalla");
+            console.error("There are no screenshots");
             return;
         }
 
         var shareText = UTF8ToString(text);
 
-        // Convertir Base64 a Blob de forma manual para asegurar compatibilidad
         var parts = window.snapUrl.split(';base64,');
         var contentType = parts[0].split(':')[1];
         var raw = window.atob(parts[1]);
@@ -116,8 +113,7 @@ zappar_sns_share_native: function(text) {
         }
 
         var blob = new Blob([uInt8Array], { type: contentType });
-        // USAR UN NOMBRE DINÁMICO Y CLARO
-        var file = new File([blob], "Screenshot_Game.png", { type: "image/png" });
+        var file = new File([blob], "Screenshot_Game.jpeg", { type: "image/jpeg" });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({
@@ -131,23 +127,13 @@ zappar_sns_share_native: function(text) {
             })
             .catch(function(error) { 
                 console.log('Share failed:', error);
-                // Si falla el menú, descargamos como plan B
                 var a = document.createElement('a');
                 a.href = window.snapUrl;
                 a.download = "Screenshot_Game.png";
                 a.click();
             });
         } else {
-            // FALLBACK PARA DESKTOP / TWITTER
-            var twitterUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText);
-            window.open(twitterUrl, '_blank');
-            
-            // Descargar la imagen automáticamente ya que no se puede "adjuntar" a Twitter vía URL
-            var a = document.createElement('a');
-            a.href = window.snapUrl;
-            a.download = "Screenshot_Game.png";
-            a.click();
-            alert("Twitter no permite adjuntar imágenes automáticamente. Se ha descargado tu captura para que la subas.");
+            alert("screenshot error");
         }
     },
 });
